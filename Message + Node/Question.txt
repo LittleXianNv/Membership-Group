@@ -1,0 +1,3 @@
+Q: 当一个node在等待listen TCP的时候是否是blocked的，如何同时监听heartbeats？
+
+gateway node 是否在ring/membership list里面？
