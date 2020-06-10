@@ -15,19 +15,12 @@ ipDict = {'18.191.220.124':0, '18.216.188.252':1}
 serverList = ['18.191.220.124', '18.216.188.252']
 
 class HeartBeatSend():
-    def __init__(self,ipDict,serverList):
+    def __init__(self,ipDict,serverList,local_ip):
         self.ipDict = ipDict
         self.serverList = serverList
+		self.local_ip = local_ip
     
     def sendHB(self):
-        def get_local_ip():
-            command1 = shlex.split("curl http://169.254.169.254/latest/meta-data/public-ipv4")
-            process = subprocess.Popen(command1,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
-                
-            stdout, stderr = process.communicate()
-            return(stdout)
         
         def get_key(val):
             for key, value in self.ipDict.items():
@@ -36,8 +29,8 @@ class HeartBeatSend():
                                 
             return "key doesn't exist"
         
-        local_ip = get_local_ip()
-        index = self.ipDict[local_ip]
+        
+        index = self.ipDict[self.local_ip]
         if index+1 < len(serverList):
             dest_ip = get_key(index+1)
         else:

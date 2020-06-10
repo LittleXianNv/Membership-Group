@@ -11,7 +11,7 @@ from threading import Lock, Thread, Event
 from time import time, ctime, sleep
 import threading
 from enum import Enum
-
+PORT = 65432
 
 class messageType(Enum):
     Join = 1
@@ -21,11 +21,10 @@ class messageType(Enum):
 
 
 class GatewayNode(MemberNode):
-	HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
-	PORT = 65432 
+	 
 	def tcp_com(self):
 	    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-	        s.bind(('127.0.0.1', 65432))
+	        s.bind((self.local_ip , PORT)) #'local_ip'
 	        s.listen()
 	        conn, addr = s.accept()
 	        with conn:
@@ -39,6 +38,7 @@ class GatewayNode(MemberNode):
 	                #conn.sendall(bytes(json_string,encoding="utf-8"))
 
 	def __init__(self,gate_ip):
+		self.local_ip = gate_ip
 		self.pid = PID(gate_ip,time())
 		print('Gateway pid created: ' + self.pid.pid_str)
 

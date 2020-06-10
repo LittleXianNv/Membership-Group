@@ -3,17 +3,17 @@ import shlex
 import os
 from threading import Timer
 import sys
-#from GatewayNode import GatewayNode
-from MemberNode import PID
+from GatewayNode import GatewayNode
+from MemberNode import PID, MemberNode
 from time import time
-
+gate_ip = '18.222.61.196'
 
 class ServerStart():
     
     def __init__(self):
         self.serverList=[]
         self.isGateNode = False
-        self.ipDict={}
+        self.ipDict={} 
 
     
     def getCommand(self, argv):
@@ -31,31 +31,31 @@ class ServerStart():
         
         if len(arg) == 2 and 'g' in arg:
             # gatenode initialization
-            gate_ip = get_local_ip()
+            
+            print(gate_ip)
             isGateNode = True
-            #gateNode = GatewayNode() #parse
-            pid = PID(gate_ip,time())
+            
             self.ipDict[gate_ip] = len(self.serverList)
-            self.serverList.append(pid)
+            #self.serverList.append(pid)
 
+            gateNode = GatewayNode(gate_ip) #parse
+            gateNode.startGateNode()
 #            restart = gateNode.startGateNode()
 #            while restart:
 #              restart = gateNode.startGateNode()
 
-        elif isGateNode == True:
-            #normal server setup
+        else:
+            # Normal server setup
             local_ip = get_local_ip()
-            pid = PID(local_ip,time())
-            self.ipDict[local_ip] = len(self.serverList)
-            self.serverList.append(pid)
-#            memberNode = MemberNode(gate_ip,local_ip)
+            #self.ipDict[local_ip] = len(self.serverList)
+            #self.serverList.append(pid)
+            memberNode = MemberNode(gate_ip,local_ip)
+            memberNode.startNormalNode()
 #            self.ring.insert(memberNode)
 #            restart = MemberNode.startNode()
 #            while restart:
 #              restart = MemberNode.startNode()
 
-        else:
-            print("No gateway node available. Unable to create.")
             
     
 
@@ -64,4 +64,4 @@ if __name__ == '__main__':
     s = ServerStart()
     argv = sys.argv
     s.getCommand(argv)
-    print(ServerStart.serverList)
+    #print(ServerStart.serverList)
