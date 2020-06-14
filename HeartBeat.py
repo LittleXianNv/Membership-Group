@@ -6,48 +6,48 @@ from time import time, ctime, sleep
 from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM
 from threading import Lock, Thread, Event
 import threading
+import * from setting 
+HBD = HeartBeatDict()
+import sendTCP from MemberNode
+import setting
 #import SocketServer
 #import daemon
-UDP_PORT = 20001
+
 HEARTBEAT_TIME_OUT = 2
 BeatWait = 0.5
-ipDict = {'18.191.220.124':0, '18.216.188.252':1}
-serverList = ['18.191.220.124', '18.216.188.252']
+# ipDict = {'18.191.220.124':0, '18.216.188.252':1}
+# serverList = ['18.191.220.124', '18.216.188.252']
+def sendThread(s,port,ip,pid_str):
+	pid_str_encoded = pid_str.encode()
+	s.sendto(pid_str_encoded, (ip,port))
+    print(time())
 
-class HeartBeatSend():
-    def __init__(self,ipDict,serverList,local_ip):
-        self.ipDict = ipDict
-        self.serverList = serverList
-		self.local_ip = local_ip
+def sendHB(pid):
+	successor_list = []
+    successor_list=setting.getSuccessor(pid)
+
+    s = socket(AF_INET, SOCK_DGRAM)
+	while True:
+		for ip in successor_list:
+            t = threading.Thread(target=sendThread, args=(s,pid.UPort,ip,pid.pid_str))
+			t.start()
+		sleep(BeatWait)
+
+	
+# #send heartbeat to successor
+# class HeartBeatSend():
+#     def __init__(self,local_ip,pid):
+#         self.pid = pid
+# 		self.local_ip = local_ip
+
+
     
-    def sendHB(self):
-        
-        def get_key(val):
-            for key, value in self.ipDict.items():
-                if val == value:
-                    return key
-                                
-            return "key doesn't exist"
-        
-        
-        index = self.ipDict[self.local_ip]
-        if index+1 < len(serverList):
-            dest_ip = get_key(index+1)
-        else:
-            dest_ip = get_key(index+1-len(serverList))
-
-        s = socket(AF_INET, SOCK_DGRAM)
-        print("client sending to ip "+dest_ip)
-        while True:
-            s.sendto('message', (dest_ip, UDP_PORT))
-            print(time())
-            sleep(BeatWait)
-
 
 class HeartBeatDict():
 	def __init__(self):
-		self.HDict = {}
+		self.HDict = {} #key = pid_str, value = time()
 		self.HLock = Lock()
+
 
 	def __repr__(self):
 		list = ''
@@ -60,70 +60,53 @@ class HeartBeatDict():
 	def update(self, entry):
 		self.HLock.acquire()
 		self.HDict[entry] = time()
-		self. HLock.release()
+		self.HLock.release()
 
-	def serverNoHeartbeat(self, HEARTBEAT_TIME_OUT):
-		noResList = []
+	def serverNoHeartbeat(self, HEARTBEAT_TIME_OUT,self_id):
 		when = time() - HEARTBEAT_TIME_OUT
 		self.HLock.acquire()
 		for key in self.HDict.keys():
 			if self.HDict[key] <when:
-				noResList.append(key)
+				print("die "+key)
+				die_pid = setting.memberList[key]
+				msg_structure = {"type": messageType.Delete.name,"pid_str":die_pid.pid_str, "ip":die_pid.ip, "index":index }
+				msg_str = json.dumps(msg_structure)+'\n'
+				for key in setting.memberList:
+					if key != self_id.pid_str and key != die_pid.pid_str:
+						Thread(target = sendTCP, args = (setting.memberList[key],msg_str))
 
 		self. HLock.release()
-		return noResList
+	
 
 
-class HBReceiver(Thread):
-	def __init__(self, curEvent, updateDict, UDP_PORT):
-		Thread.__init__(self)
-		self.updateDict = updateDict
-		self.curEvent = curEvent
-		self.port = UDP_PORT
-		self.recSocket = socket(AF_INET, SOCK_DGRAM)
-		self.recSocket.bind(('', self.port))
-
-	def __repr__(self):
-		print("Heartbeat Server on port: %d\n" % self.port)
-
-	def run(self):
-		while self.curEvent.isSet():
-			data, address = self.recSocket.recvfrom(6)
-			print("reciving from "+ str(address))
-			self.updateDict(address[0])
+class HBReceiver(BaseRequestHandler):
+	def handel(self):
+		msg, socket = self.request 
+		pid_str = msg.decode().strip(s)
+		HBD.update(pid_str)
 
 
-def recHeartBeat():
-	curEvent = Event()
-	curEvent.set()
-	HeartBeatObj = HeartBeatDict()
-	HBRecThread = HBReceiver(curEvent, HeartBeatObj.update, UDP_PORT)
-	HBRecThread.start()
-	print("server listening on port "+str(UDP_PORT))
-	while True:
-		try:
-			print("Beat Dict")
-			print(str(HeartBeatObj))
-			noResList = HeartBeatObj.serverNoHeartbeat(HEARTBEAT_TIME_OUT)
-			if noResList:
-				print("silent")
-				print(noResList)
-			sleep(HEARTBEAT_TIME_OUT)
-		except KeyboardInterrupt:
-			print("Exit...")
-			curEvent.clear()
-			HBRecThread.join()
 
-def call_to_send():
-	print(ipDict)
-    send = HeartBeatSend(ipDict,serverList)
-    send.sendHB()
 
-                     
-if __name__ == '__main__':
-    t1 = threading.Thread(target=recHeartBeat, args=())
-    t2 = threading.Thread(target=call_to_send, args=())
-	t1.start()
-    t2.start()
-	t1.join()
-	t2.join()
+# def recHeartBeat():
+# 	curEvent = Event()
+# 	curEvent.set()
+# 	HeartBeatObj = HeartBeatDict()
+# 	HBRecThread = HBReceiver(curEvent, HeartBeatObj.update, UDP_PORT)
+# 	HBRecThread.start()
+# 	print("server listening on port "+str(UDP_PORT))
+# 	while True:
+# 		try:
+# 			print(str(HeartBeatObj))
+# 			noResList = HeartBeatObj.serverNoHeartbeat(HEARTBEAT_TIME_OUT)
+# 			if noResList:
+# 				print("silent")
+# 				print(noResList)
+# 			sleep(HEARTBEAT_TIME_OUT)
+# 		except KeyboardInterrupt:
+# 			print("Exit...")
+# 			curEvent.clear()
+# 			HBRecThread.join()
+
+
+

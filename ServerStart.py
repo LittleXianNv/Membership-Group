@@ -6,14 +6,14 @@ import sys
 from GatewayNode import GatewayNode
 from MemberNode import PID, MemberNode
 from time import time
+import setting
+
 gate_ip = '18.222.61.196'
 
 class ServerStart():
     
     def __init__(self):
-        self.serverList=[]
         self.isGateNode = False
-        self.ipDict={} 
 
     
     def getCommand(self, argv):
@@ -29,16 +29,16 @@ class ServerStart():
         
         arg = argv
         
-        if len(arg) == 2 and 'g' in arg:
+        if len(arg) == 4 and 'g' in arg:
             # gatenode initialization
             
             print(gate_ip)
             isGateNode = True
             
-            self.ipDict[gate_ip] = len(self.serverList)
+            #self.ipDict[gate_ip] = len(self.serverList)
             #self.serverList.append(pid)
 
-            gateNode = GatewayNode(gate_ip) #parse
+            gateNode = GatewayNode(gate_ip,arg[2],arg[3]) #parse
             gateNode.startGateNode()
 #            restart = gateNode.startGateNode()
 #            while restart:
@@ -49,7 +49,7 @@ class ServerStart():
             local_ip = get_local_ip()
             #self.ipDict[local_ip] = len(self.serverList)
             #self.serverList.append(pid)
-            memberNode = MemberNode(gate_ip,local_ip)
+            memberNode = MemberNode(gate_ip,local_ip,arg[1],arg[2])
             memberNode.startNormalNode()
 #            self.ring.insert(memberNode)
 #            restart = MemberNode.startNode()
@@ -61,6 +61,7 @@ class ServerStart():
 
 
 if __name__ == '__main__':
+    setting.init()
     s = ServerStart()
     argv = sys.argv
     s.getCommand(argv)

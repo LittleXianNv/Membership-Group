@@ -5,62 +5,121 @@ import sys
 from time import time
 import socket
 import threading
+from GateNode import messageType
 # import SocketServer
 # import daemon
-# import HeartBeat
+import * from HeartBeat
 HEARTBEAT_TIME_OUT = 2
-UDP_PORT = 20001
-TCP_PORT = 65432
+
+def sendTCP(pid, msg_str):
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		try:
+			s.connect(pid.ip, pid.TPort)
+			s.sendall(msg_str.encode())
+			data = s.recv(1024).decode()
+			return 1
+		except:
+			return None
+		finally:
+			s.close()
 
 class PID():
-	def __init__(self, ip, timestamp):
+	def __init__(self, ip, timestamp,TPort, UPort):
 		self.ip = ip
+		self.TPort = TPort
+		self.UPort = UPort
 		self.pid_str = str(ip) + '_' + str(timestamp)
+
 
 
 class MemberNode():
     
-    
-#    self_id 
-#    gatenode_id
-#
-#
-    def __init__(self,gatenode_ip,server_ip):
-    	self.self_id = PID(server_ip,time())
-    	self.TCP_PORT = 65432
+    def __init__(self,gatenode_ip,server_ip,TPort, UPort):
+    	self.self_id = PID(server_ip,time(),TPort, UPort)
+    	self.TPort = TPort
+		self.UPort = UPort
     	self.gatenode_ip = gatenode_ip
-    	self.gatenode_id = PID(self.gatenode_ip,0)
+    	#self.gatenode_id = PID(self.gatenode_ip,0)
     	print('Normal node pid created:' + self.self_id.pid_str)
     	print('GateNode ip = ' + self.gatenode_ip)
-    	self.initMemberList()
-    	self.memberList[self.gatenode_id.pid_str] = True
-    	#print(self.memberList)
-
-
-    def initMemberList(self):
-    	self.memberList = {}
-    	self.TCP_Buffer = {}
+    	
 
     def startNormalNode(self):
     	print("Normal node started")
+		# setup udp send 
+		
 
-    	# Connect to gateNode using TCP, 
+		TCP_serv = TCPServer((self.local_ip, TPort),TCP_Response)
+		for i in range(MAX_SERVER_NUMBER):
+			t = Thread(target = TCP_serv.serve_forever)
+			t.daemon = True
+			t.start()
+
+		hbserv=ThreadingUDPServer(('',self.UPort),HBReceiver)
+		Thread(target = hbserv.serve_forever).start()
+		Thread(target = sendHB).start()
+		Thread(target = UserChoice).start()
+
+    	# Connect to gateNode using tcp, 
     	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    	s.connect((self.gatenode_ip, self.TCP_PORT))
-    	s.sendall(b'Membership List Request')
-    	data = s.recv(1024)
+    	s.connect((self.gatenode_ip, self.TPort))
+		list_request = json.dumps({"pid_str":self.self_id.pid_str})+'\n'
+    	s.sendall(list_request.encode())
+    	data = ""
+		while True:
+			msg = socket.recv(1024).decode()
+			msg_str = msg_str + msg
+			if '\n' in msg:
+				break
+		data = msg_str.strip()
     	# Get the membership list
     	print('Receive from server: ', repr(data))
 
-		
-		s.close()
-    	# Add to local list
+		# Add to local list
+		dataObj = json.loads(data)
+		memberList = dataObj["membership"]
+		serverOrder = dataObj["serverOrder"s]
+		index = dataObj["index"]
 
-    	# Send Join msg to designated nodes(3 predesessor + 3 successors)
+		# Send Join msg to every nodes
+		joinDict = {"type": messageType.Join.name,"pid_str":self.self_id.pid_str, "ip":self.self_id.ip, "TPort":self.self_id.TPort, "UPort":self.self_id.UPort, "index":index }
+		join_msg = json.dumps(joinDict)+'\n'
+		threads = []
+		for key in memberList:
+			t = Thread(target=sendJoinMsg, args=(memberList[key],join_msg))
+			threads.append(t)
+			t.start()
+		
+		for th in threads:
+			th.join()
+		s.sendall("Join finish \n".encode())
+		s.close()
+		setting.memberList[self.self_id.pid_str] = self.self_id
+		setting.serverOrder[self.self_id.pid_str] = index
+		setting.addServer(self.self_id)
+		if len(setting.getPredecessor(self.self_id))>0:
+			while True:
+				Thread(target = HBD.serverNoHeartbeat, args=(HEARTBEAT_TIME_OUT,self_id)).start()
 
     	# Add to the ring network
 
     	#start runniing (recv/send heartbeat)
+	def sendJoinMsg(pid, msg_str):
+		if sendTCP(pid, msg_str) is None:
+			pid_str = pid.pid_str
+            try:
+                del setting.memberList[pid_str]
+                setting.removeServer(pid)
+				print("join request failed")
+            except:
+                print(pid_str+" not in membership list")
+            
+            try:
+                del serverOrder[pid_str]
+            except:
+                print(pid_str+" not in serverOrder")
+	
+	
 
 #    def runNode(self):
 
