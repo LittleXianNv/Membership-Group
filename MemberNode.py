@@ -9,24 +9,13 @@ from socketserver import BaseRequestHandler, ThreadingUDPServer, TCPServer
 from enum import Enum
 import json
 from TCP_Response import TCP_Response,messageType
+from SendJoinRequest import convertJoinMsg, sendJoinMsg, sendTCP
 # import SocketServer
 # import daemon
 import * from HeartBeat
 HEARTBEAT_TIME_OUT = 2
 MAX_SERVER_NUMBER = 8
 
-
-def sendTCP(pid, msg_str):
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		try:
-			s.connect(pid.ip, pid.TPort)
-			s.sendall(msg_str.encode())
-			data = s.recv(1024).decode()
-			return 1
-		except:
-			return None
-		finally:
-			s.close()
 
 class PID():
 	def __init__(self, ip, timestamp,TPort, UPort):
@@ -88,8 +77,7 @@ class MemberNode():
 		index = dataObj["index"]
 
 		# Send Join msg to every nodes
-		joinDict = {"type": messageType.Join.name,"pid_str":self.self_id.pid_str, "ip":self.self_id.ip, "TPort":self.self_id.TPort, "UPort":self.self_id.UPort, "index":index }
-		join_msg = json.dumps(joinDict)+'\n'
+		join_msg = convertJoinMsg(messageType.Join.name,self.self_id.pid_str,self.self_id.ip,self.self_id.TPort,self.self_id.UPort,index)
 		threads = []
 		for key in memberList:
 			t = Thread(target=sendJoinMsg, args=(memberList[key],join_msg))
@@ -110,20 +98,7 @@ class MemberNode():
     	# Add to the ring network
 
     	#start runniing (recv/send heartbeat)
-	def sendJoinMsg(pid, msg_str):
-		if sendTCP(pid, msg_str) is None:
-			pid_str = pid.pid_str
-            try:
-                del setting.memberList[pid_str]
-                setting.removeServer(pid)
-				print("join request failed")
-            except:
-                print(pid_str+" not in membership list")
-            
-            try:
-                del serverOrder[pid_str]
-            except:
-                print(pid_str+" not in serverOrder")
+	
 	
 	
 

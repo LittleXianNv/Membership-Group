@@ -15,8 +15,7 @@ import setting
 
 HEARTBEAT_TIME_OUT = 2
 BeatWait = 0.5
-# ipDict = {'18.191.220.124':0, '18.216.188.252':1}
-# serverList = ['18.191.220.124', '18.216.188.252']
+
 def sendThread(s,port,ip,pid_str):
 	pid_str_encoded = pid_str.encode()
 	s.sendto(pid_str_encoded, (ip,port))
@@ -32,14 +31,6 @@ def sendHB(pid):
             t = threading.Thread(target=sendThread, args=(s,pid.UPort,ip,pid.pid_str))
 			t.start()
 		sleep(BeatWait)
-
-	
-# #send heartbeat to successor
-# class HeartBeatSend():
-#     def __init__(self,local_ip,pid):
-#         self.pid = pid
-# 		self.local_ip = local_ip
-
 
     
 
@@ -87,26 +78,6 @@ class HBReceiver(BaseRequestHandler):
 
 
 
-
-# def recHeartBeat():
-# 	curEvent = Event()
-# 	curEvent.set()
-# 	HeartBeatObj = HeartBeatDict()
-# 	HBRecThread = HBReceiver(curEvent, HeartBeatObj.update, UDP_PORT)
-# 	HBRecThread.start()
-# 	print("server listening on port "+str(UDP_PORT))
-# 	while True:
-# 		try:
-# 			print(str(HeartBeatObj))
-# 			noResList = HeartBeatObj.serverNoHeartbeat(HEARTBEAT_TIME_OUT)
-# 			if noResList:
-# 				print("silent")
-# 				print(noResList)
-# 			sleep(HEARTBEAT_TIME_OUT)
-# 		except KeyboardInterrupt:
-# 			print("Exit...")
-# 			curEvent.clear()
-# 			HBRecThread.join()
 
 
 

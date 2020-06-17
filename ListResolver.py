@@ -1,10 +1,11 @@
+from sortedcollections import ValueSortedDict
 class ListResolver():
 
     def __init__(self):
         self.memberList = {} #all the member servers with pid_str as key, pid as value
         self.serverList = [] # all the nodes with pid stored
         self.index=0
-        self.serverOrder = {}
+        self.serverOrder = ValueSortedDict() #Ring structure
     
     def getIndex(serverList, pid):
         if pid in serverList:
@@ -12,6 +13,7 @@ class ListResolver():
         else:
             return None
 
+    #calculate predecessor and print the list
     def getPredecessor(self, pid):
         res = []
         if len(self.serverList) <= 1:
@@ -39,7 +41,7 @@ class ListResolver():
                 res.append(self.serverList[index-1].ip)
             return res
                 
-    
+    #calculate successor and print list
     def getSuccessor(self, pid):
         res = []
         if len(self.serverList) <= 1:
@@ -66,9 +68,11 @@ class ListResolver():
                 res.append(self.serverList[1].ip)
             return res
 
+    #append new server to severList
     def addServer(self,pid):
         self.serverList.append(pid)
 
+    #remove server from Serverlist
     def removeServer(self,pid):
         index = self.getIndex(self.serverList, pid)
         self.serverList.pop(index)

@@ -4,9 +4,11 @@ import sendTCP from MemberNode
 def UserChoice(pid_str):
     while True:
         res = input()
+        #leave
         if res is 'l':
             LeaveRequest(pid_str)
             os.exit(1)
+        #print
         else res is 'p':
             for key in setting.memberList.keys():
                 print(key)

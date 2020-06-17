@@ -30,7 +30,7 @@ class tcp_com(BaseRequestHandler):
 				break
 		msg_str = msg_str.strip()
 		msg_obj = json.loads(msg_str)
-		print("GatewayHandler: request from "+ msg_obj["pid_str"])
+		print("GatewayNode log: request from "+ msg_obj["pid_str"])
 		print(msg_str)
 		setting.index += 1
 		reply_structure = {"membership":setting.memberList, "serverOrder":setting.serverOrder, "index":setting.index}
@@ -65,14 +65,6 @@ class GatewayNode(MemberNode):
 		Thread(target = hbserv.serve_forever).start()
 		Thread(target = sendHB).start()
 		Thread(target = UserChoice).start()
-
-		# t1 = threading.Thread(target=self.tcp_com, args=())
-		# t1.start()
-		# while(1):
-		#     print('Main program running\n')
-		#     sleep(2)
-
-		# t1.join()
 
 
 

@@ -25,12 +25,13 @@ class TCP_Response(BaseRequestHandler):
         print(msg_str)
         msg_type = msg_obj["type"]
         
+        #If received ask for list request
         if (msg_type == messageType.List.name):
-		    print("GatewayHandler: request from "+ msg_obj["pid_str"])
+		    print("GatewayNode log: request from "+ msg_obj["pid_str"])
 		    print(msg_str)
 		    setting.index += 1
-		    reply_strcture = {"membership":setting.memberList, "serverOrder":setting.serverOrder, "index":setting.index}
-		    reply_str = json.dumps(reply_strcture)+'\n'
+		    reply_structure = {"membership":setting.memberList, "serverOrder":setting.serverOrder, "index":setting.index}
+		    reply_str = json.dumps(reply_structure)+'\n'
 		    self.request.sendall(reply_str.encode())
 		    self.request.recv(1024)
             
@@ -45,6 +46,7 @@ class TCP_Response(BaseRequestHandler):
             print("serverlist: "+setting.serverList)
             # the origin last value
         
+        #Leave or delete request
         elif(msg_type == messageType.Delete.name):
             pid_str = msg_obj["pid_str"]
             try:

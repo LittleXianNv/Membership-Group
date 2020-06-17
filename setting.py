@@ -1,9 +1,8 @@
-from sortedcollections import ValueSortedDict
-#import * from ListResolver
+
 setting = ListResolver()
 
 def init():
-    print("setting init") #Ring structure
+    print("setting init") #indicate setting start
     
 
 
