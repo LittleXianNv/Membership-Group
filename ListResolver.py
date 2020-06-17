@@ -4,6 +4,7 @@ class ListResolver():
         self.memberList = {} #all the member servers with pid_str as key, pid as value
         self.serverList = [] # all the nodes with pid stored
         self.index=0
+        self.serverOrder = {}
     
     def getIndex(serverList, pid):
         if pid in serverList:

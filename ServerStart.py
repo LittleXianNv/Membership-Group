@@ -4,11 +4,11 @@ import os
 from threading import Timer
 import sys
 from GatewayNode import GatewayNode
-from MemberNode import PID, MemberNode
+from MemberNode import *
 from time import time
 import setting
+gate_ip = '52.14.170.52'
 
-gate_ip = '18.222.61.196'
 
 class ServerStart():
     
@@ -31,30 +31,15 @@ class ServerStart():
         
         if len(arg) == 4 and 'g' in arg:
             # gatenode initialization
-            
-            print(gate_ip)
-            isGateNode = True
-            
-            #self.ipDict[gate_ip] = len(self.serverList)
-            #self.serverList.append(pid)
-
             gateNode = GatewayNode(gate_ip,arg[2],arg[3]) #parse
             gateNode.startGateNode()
-#            restart = gateNode.startGateNode()
-#            while restart:
-#              restart = gateNode.startGateNode()
 
         else:
             # Normal server setup
-            local_ip = get_local_ip()
-            #self.ipDict[local_ip] = len(self.serverList)
-            #self.serverList.append(pid)
+            local_ip = get_local_ip().decode()
             memberNode = MemberNode(gate_ip,local_ip,arg[1],arg[2])
             memberNode.startNormalNode()
-#            self.ring.insert(memberNode)
-#            restart = MemberNode.startNode()
-#            while restart:
-#              restart = MemberNode.startNode()
+
 
             
     
@@ -65,4 +50,3 @@ if __name__ == '__main__':
     s = ServerStart()
     argv = sys.argv
     s.getCommand(argv)
-    #print(ServerStart.serverList)

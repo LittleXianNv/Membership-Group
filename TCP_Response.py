@@ -1,8 +1,14 @@
 from socketserver import BaseRequestHandler, ThreadingUDPServer
-from GateNode import messageType
 from MemberNode import PID
 from time import time
-import * from setting
+from setting import *
+from enum import Enum
+import socket
+
+class messageType(Enum):
+    List = 1
+    Join = 2
+    Delete = 3
 
 class TCP_Response(BaseRequestHandler):
     def handel(self):

@@ -4,12 +4,17 @@ import os
 import sys
 from time import time
 import socket
-import threading
-from GateNode import messageType
+from threading import Thread
+from socketserver import BaseRequestHandler, ThreadingUDPServer, TCPServer
+from enum import Enum
+import json
+from TCP_Response import TCP_Response,messageType
 # import SocketServer
 # import daemon
 import * from HeartBeat
 HEARTBEAT_TIME_OUT = 2
+MAX_SERVER_NUMBER = 8
+
 
 def sendTCP(pid, msg_str):
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,7 +40,7 @@ class PID():
 class MemberNode():
     
     def __init__(self,gatenode_ip,server_ip,TPort, UPort):
-    	self.self_id = PID(server_ip,time(),TPort, UPort)
+    	self.self_id = PID(str(server_ip),time(),TPort, UPort)
     	self.TPort = TPort
 		self.UPort = UPort
     	self.gatenode_ip = gatenode_ip
@@ -49,7 +54,7 @@ class MemberNode():
 		# setup udp send 
 		
 
-		TCP_serv = TCPServer((self.local_ip, TPort),TCP_Response)
+		TCP_serv = TCPServer((self.local_ip, int(self.TPort)),TCP_Response)
 		for i in range(MAX_SERVER_NUMBER):
 			t = Thread(target = TCP_serv.serve_forever)
 			t.daemon = True
@@ -62,12 +67,13 @@ class MemberNode():
 
     	# Connect to gateNode using tcp, 
     	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    	s.connect((self.gatenode_ip, self.TPort))
+    	s.connect((self.gatenode_ip, 20002))
 		list_request = json.dumps({"pid_str":self.self_id.pid_str})+'\n'
     	s.sendall(list_request.encode())
     	data = ""
+		msg_str = ""
 		while True:
-			msg = socket.recv(1024).decode()
+			msg = s.recv(1024).decode()
 			msg_str = msg_str + msg
 			if '\n' in msg:
 				break

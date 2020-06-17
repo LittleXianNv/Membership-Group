@@ -1,9 +1,9 @@
 from sortedcollections import ValueSortedDict
-import * from ListResolver
+#import * from ListResolver
 setting = ListResolver()
 
 def init():
-    serverOrder = ValueSortedDict() #Ring structure
+    print("setting init") #Ring structure
     
 
 
