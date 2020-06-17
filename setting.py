@@ -1,4 +1,4 @@
-
+# Initialize node structure
 setting = ListResolver()
 
 def init():
