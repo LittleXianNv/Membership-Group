@@ -3,17 +3,17 @@ import shlex
 import os
 from threading import Timer
 import sys
-#from GatewayNode import GatewayNode
-from MemberNode import PID
+from GatewayNode import GatewayNode
+from MemberNode import *
 from time import time
+import setting
+gate_ip = '52.14.170.52'
 
 
 class ServerStart():
     
     def __init__(self):
-        self.serverList=[]
         self.isGateNode = False
-        self.ipDict={}
 
     
     def getCommand(self, argv):
@@ -29,39 +29,24 @@ class ServerStart():
         
         arg = argv
         
-        if len(arg) == 2 and 'g' in arg:
+        if len(arg) == 4 and 'g' in arg:
             # gatenode initialization
-            gate_ip = get_local_ip()
-            isGateNode = True
-            #gateNode = GatewayNode() #parse
-            pid = PID(gate_ip,time())
-            self.ipDict[gate_ip] = len(self.serverList)
-            self.serverList.append(pid)
-
-#            restart = gateNode.startGateNode()
-#            while restart:
-#              restart = gateNode.startGateNode()
-
-        elif isGateNode == True:
-            #normal server setup
-            local_ip = get_local_ip()
-            pid = PID(local_ip,time())
-            self.ipDict[local_ip] = len(self.serverList)
-            self.serverList.append(pid)
-#            memberNode = MemberNode(gate_ip,local_ip)
-#            self.ring.insert(memberNode)
-#            restart = MemberNode.startNode()
-#            while restart:
-#              restart = MemberNode.startNode()
+            gateNode = GatewayNode(gate_ip,arg[2],arg[3]) #parse
+            gateNode.startGateNode()
 
         else:
-            print("No gateway node available. Unable to create.")
+            # Normal server setup
+            local_ip = get_local_ip().decode()
+            memberNode = MemberNode(gate_ip,local_ip,arg[1],arg[2])
+            memberNode.startNormalNode()
+
+
             
     
 
 
 if __name__ == '__main__':
+    setting.init()
     s = ServerStart()
     argv = sys.argv
     s.getCommand(argv)
-    print(ServerStart.serverList)
